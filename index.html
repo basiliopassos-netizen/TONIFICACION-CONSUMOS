@@ -11,7 +11,6 @@
             --success-color: #16a34a;
             --success-hover: #15803d;
             --danger-color: #dc2626;
-            --warning-color: #d97706;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -68,13 +67,9 @@
             font-size: 1rem;
             box-sizing: border-box;
             background-color: #fff;
-            transition: border-color 0.2s;
         }
 
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        input[type="time"]:focus,
-        select:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -87,7 +82,7 @@
 
         .time-row .form-group {
             flex: 1;
-            margin-bottom: 0;
+            margin-bottom: 20px;
         }
 
         .counter-container {
@@ -106,7 +101,6 @@
             height: 42px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -127,7 +121,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Alerta de Kerajet */
         .alert-kerajet {
             background-color: #fef3c7;
             border: 1px solid #f59e0b;
@@ -141,7 +134,6 @@
             text-align: center;
         }
 
-        /* Botón de Guardar Destacado */
         .save-container {
             margin-top: 25px;
             margin-bottom: 30px;
@@ -155,17 +147,16 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
             text-align: center;
         }
 
         .btn-save {
-            background-color: var(--success-color);
+            background-color: var(--success-color, #16a34a);
             color: white;
             box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
         }
         .btn-save:hover {
-            background-color: var(--success-hover);
+            background-color: #15803d;
         }
 
         .btn-primary {
@@ -178,7 +169,7 @@
 
         .btn-danger {
             background-color: #f1f5f9;
-            color: var(--danger-color);
+            color: var(--danger-color, #dc2626);
             border: 1px solid var(--border-color);
             font-size: 0.9rem;
             padding: 10px;
@@ -187,7 +178,6 @@
             background-color: #fee2e2;
         }
 
-        /* Sección de Historial */
         .history-section {
             border-top: 2px solid #f1f5f9;
             padding-top: 20px;
@@ -210,35 +200,13 @@
             background-color: #f1f5f9;
         }
 
-        /* Estilos específicos para impresión / PDF */
         @media print {
-            body {
-                background-color: white;
-                padding: 0;
-            }
-            .container {
-                box-shadow: none;
-                padding: 0;
-                max-width: 100%;
-            }
-            .btn-counter, .save-container, .history-section button, .alert-kerajet {
-                display: none !important;
-            }
-            input, select {
-                border: none;
-                background: transparent;
-                padding: 0;
-                font-size: 1rem;
-            }
-            .counter-display {
-                border: none;
-                background: transparent;
-                text-align: left;
-                padding: 0;
-            }
-            .history-table {
-                margin-top: 20px;
-            }
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            .btn-counter, .save-container, .history-section button, .alert-kerajet { display: none !important; }
+            input, select { border: none; background: transparent; padding: 0; font-size: 1rem; }
+            .counter-display { border: none; background: transparent; text-align: left; padding: 0; }
+            .history-table { margin-top: 20px; }
         }
     </style>
 </head>
@@ -247,7 +215,7 @@
     <div class="container">
         <h1>Tonificación Consumos</h1>
         
-        <div id="consumptionForm">
+        <div>
             <!-- Número de Orden -->
             <div class="form-group">
                 <label for="orderNumber">Número de Orden</label>
@@ -335,9 +303,9 @@
                 </div>
             </div>
 
-            <!-- BOTÓN DE GUARDAR DESTACADO -->
+            <!-- BOTÓN DE GUARDAR DIRECTO -->
             <div class="save-container">
-                <button type="button" class="btn btn-save" onclick="saveSession()">💾 GUARDAR REGISTRO DE HOY</button>
+                <button type="button" class="btn btn-save" id="btnSaveSession">💾 GUARDAR REGISTRO DE HOY</button>
             </div>
         </div>
 
@@ -349,8 +317,8 @@
             </div>
 
             <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                <button type="button" class="btn btn-primary" onclick="generatePDF()">📄 Generar Informe PDF Acumulado</button>
-                <button type="button" class="btn btn-danger" onclick="clearHistory()">🗑️ Borrar Todo / Nuevo Pedido</button>
+                <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
+                <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️ Borrar Todo / Nuevo Pedido</button>
             </div>
         </div>
     </div>
@@ -359,13 +327,13 @@
         let counts = { ok: 0, nok: 0 };
         let historyData = [];
 
-        // Cargar datos guardados al iniciar la página
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
             document.getElementById('timeFrom').value = "07:00";
             document.getElementById('timeTo').value = "15:00";
 
+            // Cargar datos guardados previamente si existen
             const savedOrder = localStorage.getItem('ton_order');
             const savedTech = localStorage.getItem('ton_tech');
             const savedSubstrate = localStorage.getItem('ton_substrate');
@@ -378,25 +346,32 @@
             if (savedGraphic) document.getElementById('graphicName').value = savedGraphic;
             
             if (savedHistory) {
-                historyData = JSON.parse(savedHistory);
-                renderHistory();
+                try {
+                    historyData = JSON.parse(savedHistory);
+                    renderHistory();
+                } catch(e) {
+                    historyData = [];
+                }
             }
 
-            // Escuchar cambios para comprobar alerta en tiempo real
+            // Event Listeners directos para evitar fallos
+            document.getElementById('btnSaveSession').addEventListener('click', saveSession);
+            document.getElementById('btnPrintPDF').addEventListener('click', generatePDF);
+            document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
+
             document.getElementById('timeFrom').addEventListener('change', checkKerajetAlert);
             document.getElementById('timeTo').addEventListener('change', checkKerajetAlert);
             document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
+            
             checkKerajetAlert();
         });
 
-        // Ajustar contadores (+ / -)
         function adjustCount(type, amount) {
             counts[type] += amount;
             if (counts[type] < 0) counts[type] = 0;
             document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`).innerText = counts[type];
         }
 
-        // Calcular horas de una sesión específica
         function calculateHours(timeFrom, timeTo) {
             const [hFrom, mFrom] = timeFrom.split(':').map(Number);
             const [hTo, mTo] = timeTo.split(':').map(Number);
@@ -410,7 +385,6 @@
             return (minutesTo - minutesFrom) / 60;
         }
 
-        // Comprobar si se superan las 16h acumuladas y el estatus es Pendiente
         function checkKerajetAlert() {
             const timeFrom = document.getElementById('timeFrom').value;
             const timeTo = document.getElementById('timeTo').value;
@@ -430,7 +404,6 @@
             }
         }
 
-        // Guardar la sesión del día actual
         function saveSession() {
             const order = document.getElementById('orderNumber').value.trim();
             const technician = document.getElementById('technician').value.trim();
@@ -453,13 +426,11 @@
                 return;
             }
 
-            // Guardar datos generales en memoria
             localStorage.setItem('ton_order', order);
             localStorage.setItem('ton_tech', technician);
             localStorage.setItem('ton_substrate', substrate);
             localStorage.setItem('ton_graphic', graphicName);
 
-            // Añadir al historial
             const newEntry = {
                 date: date,
                 timeFrom: timeFrom,
@@ -476,7 +447,7 @@
             renderHistory();
             checkKerajetAlert();
 
-            // Resetear contadores de planchas a 0 para el siguiente día
+            // Resetear solo contadores de planchas
             counts = { ok: 0, nok: 0 };
             document.getElementById('countOk').innerText = '0';
             document.getElementById('countNok').innerText = '0';
@@ -484,7 +455,6 @@
             alert('¡Registro y horas guardados correctamente en el historial!');
         }
 
-        // Mostrar el historial en pantalla
         function renderHistory() {
             const container = document.getElementById('historyContainer');
             if (historyData.length === 0) {
@@ -539,7 +509,6 @@
             container.innerHTML = html;
         }
 
-        // Generar PDF sumando todos los días y horas
         function generatePDF() {
             if (historyData.length === 0) {
                 alert('No hay ningún registro guardado en el historial para generar el informe.');
@@ -548,7 +517,6 @@
             window.print();
         }
 
-        // Borrar historial y datos guardados
         function clearHistory() {
             if (confirm('¿Estás seguro de que quieres borrar todo el historial y empezar un nuevo pedido?')) {
                 localStorage.clear();
