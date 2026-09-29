@@ -8,6 +8,9 @@
         :root {
             --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
+            --success-color: #16a34a;
+            --success-hover: #15803d;
+            --danger-color: #dc2626;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -22,17 +25,17 @@
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
         }
 
         .container {
             background-color: var(--card-bg);
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 30px;
         }
 
         h1 {
@@ -114,13 +117,12 @@
         .actions {
             margin-top: 30px;
             display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
-        .btn-primary {
-            flex: 1;
-            background-color: var(--primary-color);
-            color: white;
+        .btn {
+            width: 100%;
             border: none;
             padding: 12px 20px;
             font-size: 1rem;
@@ -131,11 +133,58 @@
             text-align: center;
         }
 
+        .btn-save {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: var(--success-hover);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
         .btn-primary:hover {
             background-color: var(--primary-hover);
         }
 
-        /* Estilos específicos para impresión / PDF ocultando elementos si es necesario */
+        .btn-danger {
+            background-color: #f1f5f9;
+            color: var(--danger-color);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            padding: 8px;
+        }
+        .btn-danger:hover {
+            background-color: #fee2e2;
+        }
+
+        /* Sección de Historial */
+        .history-section {
+            margin-top: 30px;
+            border-top: 2px solid #f1f5f9;
+            padding-top: 20px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .history-table th, .history-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: center;
+        }
+
+        .history-table th {
+            background-color: #f1f5f9;
+        }
+
+        /* Estilos específicos para impresión / PDF */
         @media print {
             body {
                 background-color: white;
@@ -146,7 +195,7 @@
                 padding: 0;
                 max-width: 100%;
             }
-            .btn-counter, .actions {
+            .btn-counter, .actions, .history-section button {
                 display: none !important;
             }
             input, select {
@@ -160,6 +209,9 @@
                 background: transparent;
                 text-align: left;
                 padding: 0;
+            }
+            .history-table {
+                margin-top: 20px;
             }
         }
     </style>
@@ -176,7 +228,13 @@
                 <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001" required>
             </div>
 
-            <!-- Sustrato (Ordenado alfabéticamente y sin duplicados) -->
+            <!-- Técnico -->
+            <div class="form-group">
+                <label for="technician">Técnico</label>
+                <input type="text" id="technician" placeholder="Nombre del técnico..." required>
+            </div>
+
+            <!-- Sustrato -->
             <div class="form-group">
                 <label for="substrate">Sustrato</label>
                 <select id="substrate" required>
@@ -199,15 +257,15 @@
                 <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica..." required>
             </div>
 
-            <!-- Fecha Automática (Modificable) -->
+            <!-- Fecha (Modificable) -->
             <div class="form-group">
-                <label for="dateField">Fecha</label>
+                <label for="dateField">Fecha de Sesión</label>
                 <input type="date" id="dateField" required>
             </div>
 
             <!-- Cantidad Planchas No OK -->
             <div class="form-group">
-                <label>Cantidad Planchas No OK</label>
+                <label>Cantidad Planchas No OK (de hoy)</label>
                 <div class="counter-container">
                     <button type="button" class="btn-counter" onclick="adjustCount('nok', -1)">-</button>
                     <div id="countNok" class="counter-display">0</div>
@@ -217,7 +275,7 @@
 
             <!-- Cantidad Planchas OK -->
             <div class="form-group">
-                <label>Cantidad Planchas OK</label>
+                <label>Cantidad Planchas OK (de hoy)</label>
                 <div class="counter-container">
                     <button type="button" class="btn-counter" onclick="adjustCount('ok', -1)">-</button>
                     <div id="countOk" class="counter-display">0</div>
@@ -227,41 +285,168 @@
 
             <!-- Botones de Acción -->
             <div class="actions">
-                <button type="button" class="btn-primary" onclick="generatePDF()">Generar Informe PDF / Imprimir</button>
+                <button type="button" class="btn btn-save" onclick="saveSession()">💾 Guardar Registro de Hoy</button>
             </div>
         </form>
+
+        <!-- Historial de días guardados -->
+        <div class="history-section">
+            <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Historial de Consumos Guardados</h3>
+            <div id="historyContainer">
+                <p style="font-size: 0.9rem; color: #64748b;">No hay registros guardados todavía.</p>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" class="btn btn-primary" onclick="generatePDF()">📄 Generar Informe PDF Acumulado</button>
+                <button type="button" class="btn btn-danger" onclick="clearHistory()">🗑️ Borrar Todo / Nuevo Pedido</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Poner la fecha actual automáticamente al cargar la página
+        let counts = { ok: 0, nok: 0 };
+        let historyData = [];
+
+        // Cargar datos guardados al iniciar la página
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
+
+            const savedOrder = localStorage.getItem('ton_order');
+            const savedTech = localStorage.getItem('ton_tech');
+            const savedSubstrate = localStorage.getItem('ton_substrate');
+            const savedGraphic = localStorage.getItem('ton_graphic');
+            const savedHistory = localStorage.getItem('ton_history');
+
+            if (savedOrder) document.getElementById('orderNumber').value = savedOrder;
+            if (savedTech) document.getElementById('technician').value = savedTech;
+            if (savedSubstrate) document.getElementById('substrate').value = savedSubstrate;
+            if (savedGraphic) document.getElementById('graphicName').value = savedGraphic;
+            
+            if (savedHistory) {
+                historyData = JSON.parse(savedHistory);
+                renderHistory();
+            }
         });
 
-        // Lógica de contadores dinámicos (+ / -)
-        let counts = {
-            ok: 0,
-            nok: 0
-        };
-
+        // Ajustar contadores (+ / -)
         function adjustCount(type, amount) {
             counts[type] += amount;
-            if (counts[type] < 0) {
-                counts[type] = 0; // Evita números negativos
-            }
+            if (counts[type] < 0) counts[type] = 0;
             document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`).innerText = counts[type];
         }
 
-        // Función para generar informe / imprimir (abre el diálogo nativo para Guardar como PDF)
-        function generatePDF() {
+        // Guardar la sesión del día actual
+        function saveSession() {
             const order = document.getElementById('orderNumber').value;
-            if (!order) {
-                alert('Por favor, introduce al menos el número de orden antes de generar el informe.');
-                document.getElementById('orderNumber').focus();
+            const technician = document.getElementById('technician').value;
+            const substrate = document.getElementById('substrate').value;
+            const graphicName = document.getElementById('graphicName').value;
+            const date = document.getElementById('dateField').value;
+
+            if (!order || !technician || !substrate || !graphicName || !date) {
+                alert('Por favor, rellena todos los campos principales antes de guardar.');
+                return;
+            }
+
+            if (counts.ok === 0 && counts.nok === 0) {
+                if (!confirm('Los contadores de planchas OK y NO OK están a 0. ¿Deseas guardar de todas formas?')) {
+                    return;
+                }
+            }
+
+            // Guardar datos generales en memoria para que no haya que reescribirlos
+            localStorage.setItem('ton_order', order);
+            localStorage.setItem('ton_tech', technician);
+            localStorage.setItem('ton_substrate', substrate);
+            localStorage.setItem('ton_graphic', graphicName);
+
+            // Añadir al historial
+            const newEntry = {
+                date: date,
+                ok: counts.ok,
+                nok: counts.nok
+            };
+
+            historyData.push(newEntry);
+            localStorage.setItem('ton_history', JSON.stringify(historyData));
+
+            renderHistory();
+
+            // Resetear contadores a 0 para el siguiente día
+            counts = { ok: 0, nok: 0 };
+            document.getElementById('countOk').innerText = '0';
+            document.getElementById('countNok').innerText = '0';
+
+            alert('¡Registro guardado correctamente!');
+        }
+
+        // Mostrar el historial en pantalla
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            if (historyData.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.9rem; color: #64748b;">No hay registros guardados todavía.</p>';
+                return;
+            }
+
+            let totalOk = 0;
+            let totalNok = 0;
+
+            let html = `<table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Planchas OK</th>
+                        <th>Planchas NO OK</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            historyData.forEach(item => {
+                totalOk += item.ok;
+                totalNok += item.nok;
+                html += `<tr>
+                    <td>${item.date}</td>
+                    <td>${item.ok}</td>
+                    <td>${item.nok}</td>
+                </tr>`;
+            });
+
+            html += `</tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background-color: #e2e8f0;">
+                        <td>TOTALES</td>
+                        <td>${totalOk}</td>
+                        <td>${totalNok}</td>
+                    </tr>
+                </tfoot>
+            </table>`;
+
+            container.innerHTML = html;
+        }
+
+        // Generar PDF sumando todos los días
+        function generatePDF() {
+            if (historyData.length === 0) {
+                alert('No hay ningún registro guardado en el historial para generar el informe.');
                 return;
             }
             window.print();
+        }
+
+        // Borrar historial y datos guardados
+        function clearHistory() {
+            if (confirm('¿Estás seguro de que quieres borrar todo el historial y empezar un nuevo pedido?')) {
+                localStorage.clear();
+                historyData = [];
+                counts = { ok: 0, nok: 0 };
+                document.getElementById('consumptionForm').reset();
+                document.getElementById('countOk').innerText = '0';
+                document.getElementById('countNok').innerText = '0';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('dateField').value = today;
+                renderHistory();
+            }
         }
     </script>
 </body>
