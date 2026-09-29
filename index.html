@@ -114,19 +114,18 @@
             border: 1px solid var(--border-color);
         }
 
-        .actions {
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        /* Botón de Guardar Destacado */
+        .save-container {
+            margin-top: 25px;
+            margin-bottom: 30px;
         }
 
         .btn {
             width: 100%;
             border: none;
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 14px 20px;
+            font-size: 1.05rem;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -136,6 +135,7 @@
         .btn-save {
             background-color: var(--success-color);
             color: white;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
         }
         .btn-save:hover {
             background-color: var(--success-hover);
@@ -154,7 +154,7 @@
             color: var(--danger-color);
             border: 1px solid var(--border-color);
             font-size: 0.9rem;
-            padding: 8px;
+            padding: 10px;
         }
         .btn-danger:hover {
             background-color: #fee2e2;
@@ -162,7 +162,6 @@
 
         /* Sección de Historial */
         .history-section {
-            margin-top: 30px;
             border-top: 2px solid #f1f5f9;
             padding-top: 20px;
         }
@@ -195,7 +194,7 @@
                 padding: 0;
                 max-width: 100%;
             }
-            .btn-counter, .actions, .history-section button {
+            .btn-counter, .save-container, .history-section button {
                 display: none !important;
             }
             input, select {
@@ -283,9 +282,9 @@
                 </div>
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="actions">
-                <button type="button" class="btn btn-save" onclick="saveSession()">💾 Guardar Registro de Hoy</button>
+            <!-- BOTÓN DE GUARDAR DESTACADO -->
+            <div class="save-container">
+                <button type="button" class="btn btn-save" onclick="saveSession()">💾 GUARDAR REGISTRO DE HOY</button>
             </div>
         </form>
 
@@ -345,7 +344,7 @@
             const date = document.getElementById('dateField').value;
 
             if (!order || !technician || !substrate || !graphicName || !date) {
-                alert('Por favor, rellena todos los campos principales antes de guardar.');
+                alert('Por favor, rellena los campos principales (Orden, Técnico, Sustrato, Gráfica y Fecha) antes de guardar.');
                 return;
             }
 
@@ -378,7 +377,7 @@
             document.getElementById('countOk').innerText = '0';
             document.getElementById('countNok').innerText = '0';
 
-            alert('¡Registro guardado correctamente!');
+            alert('¡Registro de hoy guardado correctamente en el historial!');
         }
 
         // Mostrar el historial en pantalla
@@ -415,7 +414,7 @@
             html += `</tbody>
                 <tfoot>
                     <tr style="font-weight: bold; background-color: #e2e8f0;">
-                        <td>TOTALES</td>
+                        <td>TOTALES ACUMULADOS</td>
                         <td>${totalOk}</td>
                         <td>${totalNok}</td>
                     </tr>
