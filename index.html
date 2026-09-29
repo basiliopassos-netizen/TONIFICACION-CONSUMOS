@@ -280,7 +280,7 @@
 
             <!-- Aviso sugerencia Kerajet -->
             <div id="kerajetAlert" class="alert-kerajet">
-                ⚠️ Se han alcanzado o superado las 16 horas de trabajo y el estatus sigue en pendiente: <strong>Solicitar ayuda a Kerajet</strong>
+                ⚠️ Se han alcanzado o superado las 16 horas de trabajo acumuladas y el estatus sigue en pendiente: <strong>Solicitar ayuda a Kerajet</strong>
             </div>
 
             <!-- Cantidad Planchas No OK -->
@@ -330,8 +330,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
-            document.getElementById('timeFrom').value = "07:00";
-            document.getElementById('timeTo').value = "15:00";
+            document.getElementById('timeFrom').value = "14:00";
+            document.getElementById('timeTo').value = "22:00";
 
             // Cargar datos guardados previamente si existen
             const savedOrder = localStorage.getItem('ton_order');
@@ -354,13 +354,11 @@
                 }
             }
 
-            // Event Listeners directos para evitar fallos
+            // Event Listeners directos
             document.getElementById('btnSaveSession').addEventListener('click', saveSession);
             document.getElementById('btnPrintPDF').addEventListener('click', generatePDF);
             document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
 
-            document.getElementById('timeFrom').addEventListener('change', checkKerajetAlert);
-            document.getElementById('timeTo').addEventListener('change', checkKerajetAlert);
             document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
             
             checkKerajetAlert();
@@ -386,18 +384,13 @@
         }
 
         function checkKerajetAlert() {
-            const timeFrom = document.getElementById('timeFrom').value;
-            const timeTo = document.getElementById('timeTo').value;
             const status = document.getElementById('statusField').value;
             const alertBox = document.getElementById('kerajetAlert');
 
-            if (!timeFrom || !timeTo) return;
-
-            let currentSessionHours = calculateHours(timeFrom, timeTo);
+            // Sumar exclusivamente las horas de los turnos ya guardados en el historial
             let totalHistoryHours = historyData.reduce((acc, item) => acc + item.hours, 0);
-            let grandTotalHours = totalHistoryHours + currentSessionHours;
 
-            if (grandTotalHours >= 16 && status === 'Pendiente') {
+            if (totalHistoryHours >= 16 && status === 'Pendiente') {
                 alertBox.style.display = 'block';
             } else {
                 alertBox.style.display = 'none';
@@ -528,8 +521,8 @@
                 document.getElementById('graphicName').value = '';
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dateField').value = today;
-                document.getElementById('timeFrom').value = "07:00";
-                document.getElementById('timeTo').value = "15:00";
+                document.getElementById('timeFrom').value = "14:00";
+                document.getElementById('timeTo').value = "22:00";
                 document.getElementById('statusField').value = "Pendiente";
                 document.getElementById('countOk').innerText = '0';
                 document.getElementById('countNok').innerText = '0';
