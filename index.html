@@ -247,23 +247,23 @@
     <div class="container">
         <h1>Tonificación Consumos</h1>
         
-        <form id="consumptionForm">
+        <div id="consumptionForm">
             <!-- Número de Orden -->
             <div class="form-group">
                 <label for="orderNumber">Número de Orden</label>
-                <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001" required>
+                <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001">
             </div>
 
             <!-- Técnico -->
             <div class="form-group">
                 <label for="technician">Técnico</label>
-                <input type="text" id="technician" placeholder="Nombre del técnico..." required>
+                <input type="text" id="technician" placeholder="Nombre del técnico...">
             </div>
 
             <!-- Sustrato -->
             <div class="form-group">
                 <label for="substrate">Sustrato</label>
-                <select id="substrate" required>
+                <select id="substrate">
                     <option value="" disabled selected>Selecciona un sustrato...</option>
                     <option value="alveo">Alveo</option>
                     <option value="anticato">Anticato</option>
@@ -280,31 +280,31 @@
             <!-- Nombre de Gráfica -->
             <div class="form-group">
                 <label for="graphicName">Nombre de Gráfica</label>
-                <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica..." required>
+                <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica...">
             </div>
 
             <!-- Fecha (Modificable) -->
             <div class="form-group">
                 <label for="dateField">Fecha de Sesión</label>
-                <input type="date" id="dateField" required>
+                <input type="date" id="dateField">
             </div>
 
             <!-- Hora Desde y Hora Hasta -->
             <div class="time-row">
                 <div class="form-group">
                     <label for="timeFrom">Hora Desde</label>
-                    <input type="time" id="timeFrom" required>
+                    <input type="time" id="timeFrom">
                 </div>
                 <div class="form-group">
                     <label for="timeTo">Hora Hasta</label>
-                    <input type="time" id="timeTo" required>
+                    <input type="time" id="timeTo">
                 </div>
             </div>
 
             <!-- Estatus -->
             <div class="form-group">
                 <label for="statusField">Estatus</label>
-                <select id="statusField" required>
+                <select id="statusField">
                     <option value="Pendiente">Pendiente</option>
                     <option value="Fin">Fin</option>
                 </select>
@@ -339,7 +339,7 @@
             <div class="save-container">
                 <button type="button" class="btn btn-save" onclick="saveSession()">💾 GUARDAR REGISTRO DE HOY</button>
             </div>
-        </form>
+        </div>
 
         <!-- Historial de días guardados -->
         <div class="history-section">
@@ -432,26 +432,25 @@
 
         // Guardar la sesión del día actual
         function saveSession() {
-            const order = document.getElementById('orderNumber').value;
-            const technician = document.getElementById('technician').value;
+            const order = document.getElementById('orderNumber').value.trim();
+            const technician = document.getElementById('technician').value.trim();
             const substrate = document.getElementById('substrate').value;
-            const graphicName = document.getElementById('graphicName').value;
+            const graphicName = document.getElementById('graphicName').value.trim();
             const date = document.getElementById('dateField').value;
             const timeFrom = document.getElementById('timeFrom').value;
             const timeTo = document.getElementById('timeTo').value;
             const status = document.getElementById('statusField').value;
 
             if (!order || !technician || !substrate || !graphicName || !date || !timeFrom || !timeTo) {
-                alert('Por favor, rellena todos los campos principales (incluyendo las horas) antes de guardar.');
+                alert('Por favor, asegúrate de rellenar todos los campos antes de guardar.');
                 return;
             }
 
             const hoursWorked = calculateHours(timeFrom, timeTo);
 
-            if (counts.ok === 0 && counts.nok === 0) {
-                if (!confirm('Los contadores de planchas OK y NO OK están a 0. ¿Deseas guardar de todas formas?')) {
-                    return;
-                }
+            if (hoursWorked <= 0) {
+                alert('La hora "Hasta" debe ser posterior a la hora "Desde".');
+                return;
             }
 
             // Guardar datos generales en memoria
@@ -555,13 +554,17 @@
                 localStorage.clear();
                 historyData = [];
                 counts = { ok: 0, nok: 0 };
-                document.getElementById('consumptionForm').reset();
-                document.getElementById('countOk').innerText = '0';
-                document.getElementById('countNok').innerText = '0';
+                document.getElementById('orderNumber').value = '';
+                document.getElementById('technician').value = '';
+                document.getElementById('substrate').selectedIndex = 0;
+                document.getElementById('graphicName').value = '';
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dateField').value = today;
                 document.getElementById('timeFrom').value = "07:00";
                 document.getElementById('timeTo').value = "15:00";
+                document.getElementById('statusField').value = "Pendiente";
+                document.getElementById('countOk').innerText = '0';
+                document.getElementById('countNok').innerText = '0';
                 renderHistory();
                 checkKerajetAlert();
             }
