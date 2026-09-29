@@ -11,6 +11,7 @@
             --success-color: #16a34a;
             --success-hover: #15803d;
             --danger-color: #dc2626;
+            --warning-color: #d97706;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -58,6 +59,7 @@
 
         input[type="text"],
         input[type="date"],
+        input[type="time"],
         select {
             width: 100%;
             padding: 10px 12px;
@@ -71,10 +73,21 @@
 
         input[type="text"]:focus,
         input[type="date"]:focus,
+        input[type="time"]:focus,
         select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .time-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .time-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
         }
 
         .counter-container {
@@ -112,6 +125,20 @@
             padding: 8px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+        }
+
+        /* Alerta de Kerajet */
+        .alert-kerajet {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+            text-align: center;
         }
 
         /* Botón de Guardar Destacado */
@@ -169,13 +196,13 @@
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             margin-top: 10px;
         }
 
         .history-table th, .history-table td {
             border: 1px solid var(--border-color);
-            padding: 8px;
+            padding: 6px 4px;
             text-align: center;
         }
 
@@ -194,7 +221,7 @@
                 padding: 0;
                 max-width: 100%;
             }
-            .btn-counter, .save-container, .history-section button {
+            .btn-counter, .save-container, .history-section button, .alert-kerajet {
                 display: none !important;
             }
             input, select {
@@ -262,6 +289,32 @@
                 <input type="date" id="dateField" required>
             </div>
 
+            <!-- Hora Desde y Hora Hasta -->
+            <div class="time-row">
+                <div class="form-group">
+                    <label for="timeFrom">Hora Desde</label>
+                    <input type="time" id="timeFrom" required>
+                </div>
+                <div class="form-group">
+                    <label for="timeTo">Hora Hasta</label>
+                    <input type="time" id="timeTo" required>
+                </div>
+            </div>
+
+            <!-- Estatus -->
+            <div class="form-group">
+                <label for="statusField">Estatus</label>
+                <select id="statusField" required>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Fin">Fin</option>
+                </select>
+            </div>
+
+            <!-- Aviso sugerencia Kerajet -->
+            <div id="kerajetAlert" class="alert-kerajet">
+                ⚠️ Se han alcanzado o superado las 16 horas de trabajo y el estatus sigue en pendiente: <strong>Solicitar ayuda a Kerajet</strong>
+            </div>
+
             <!-- Cantidad Planchas No OK -->
             <div class="form-group">
                 <label>Cantidad Planchas No OK (de hoy)</label>
@@ -290,7 +343,7 @@
 
         <!-- Historial de días guardados -->
         <div class="history-section">
-            <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Historial de Consumos Guardados</h3>
+            <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Historial de Consumos y Tiempos</h3>
             <div id="historyContainer">
                 <p style="font-size: 0.9rem; color: #64748b;">No hay registros guardados todavía.</p>
             </div>
@@ -310,6 +363,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
+            document.getElementById('timeFrom').value = "07:00";
+            document.getElementById('timeTo').value = "15:00";
 
             const savedOrder = localStorage.getItem('ton_order');
             const savedTech = localStorage.getItem('ton_tech');
@@ -326,6 +381,12 @@
                 historyData = JSON.parse(savedHistory);
                 renderHistory();
             }
+
+            // Escuchar cambios para comprobar alerta en tiempo real
+            document.getElementById('timeFrom').addEventListener('change', checkKerajetAlert);
+            document.getElementById('timeTo').addEventListener('change', checkKerajetAlert);
+            document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
+            checkKerajetAlert();
         });
 
         // Ajustar contadores (+ / -)
@@ -335,6 +396,40 @@
             document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`).innerText = counts[type];
         }
 
+        // Calcular horas de una sesión específica
+        function calculateHours(timeFrom, timeTo) {
+            const [hFrom, mFrom] = timeFrom.split(':').map(Number);
+            const [hTo, mTo] = timeTo.split(':').map(Number);
+            
+            let minutesFrom = hFrom * 60 + mFrom;
+            let minutesTo = hTo * 60 + mTo;
+            
+            if (minutesTo < minutesFrom) {
+                minutesTo += 24 * 60;
+            }
+            return (minutesTo - minutesFrom) / 60;
+        }
+
+        // Comprobar si se superan las 16h acumuladas y el estatus es Pendiente
+        function checkKerajetAlert() {
+            const timeFrom = document.getElementById('timeFrom').value;
+            const timeTo = document.getElementById('timeTo').value;
+            const status = document.getElementById('statusField').value;
+            const alertBox = document.getElementById('kerajetAlert');
+
+            if (!timeFrom || !timeTo) return;
+
+            let currentSessionHours = calculateHours(timeFrom, timeTo);
+            let totalHistoryHours = historyData.reduce((acc, item) => acc + item.hours, 0);
+            let grandTotalHours = totalHistoryHours + currentSessionHours;
+
+            if (grandTotalHours >= 16 && status === 'Pendiente') {
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
         // Guardar la sesión del día actual
         function saveSession() {
             const order = document.getElementById('orderNumber').value;
@@ -342,11 +437,16 @@
             const substrate = document.getElementById('substrate').value;
             const graphicName = document.getElementById('graphicName').value;
             const date = document.getElementById('dateField').value;
+            const timeFrom = document.getElementById('timeFrom').value;
+            const timeTo = document.getElementById('timeTo').value;
+            const status = document.getElementById('statusField').value;
 
-            if (!order || !technician || !substrate || !graphicName || !date) {
-                alert('Por favor, rellena los campos principales (Orden, Técnico, Sustrato, Gráfica y Fecha) antes de guardar.');
+            if (!order || !technician || !substrate || !graphicName || !date || !timeFrom || !timeTo) {
+                alert('Por favor, rellena todos los campos principales (incluyendo las horas) antes de guardar.');
                 return;
             }
+
+            const hoursWorked = calculateHours(timeFrom, timeTo);
 
             if (counts.ok === 0 && counts.nok === 0) {
                 if (!confirm('Los contadores de planchas OK y NO OK están a 0. ¿Deseas guardar de todas formas?')) {
@@ -354,7 +454,7 @@
                 }
             }
 
-            // Guardar datos generales en memoria para que no haya que reescribirlos
+            // Guardar datos generales en memoria
             localStorage.setItem('ton_order', order);
             localStorage.setItem('ton_tech', technician);
             localStorage.setItem('ton_substrate', substrate);
@@ -363,6 +463,10 @@
             // Añadir al historial
             const newEntry = {
                 date: date,
+                timeFrom: timeFrom,
+                timeTo: timeTo,
+                hours: hoursWorked,
+                status: status,
                 ok: counts.ok,
                 nok: counts.nok
             };
@@ -371,13 +475,14 @@
             localStorage.setItem('ton_history', JSON.stringify(historyData));
 
             renderHistory();
+            checkKerajetAlert();
 
-            // Resetear contadores a 0 para el siguiente día
+            // Resetear contadores de planchas a 0 para el siguiente día
             counts = { ok: 0, nok: 0 };
             document.getElementById('countOk').innerText = '0';
             document.getElementById('countNok').innerText = '0';
 
-            alert('¡Registro de hoy guardado correctamente en el historial!');
+            alert('¡Registro y horas guardados correctamente en el historial!');
         }
 
         // Mostrar el historial en pantalla
@@ -390,13 +495,17 @@
 
             let totalOk = 0;
             let totalNok = 0;
+            let totalHours = 0;
 
             let html = `<table class="history-table">
                 <thead>
                     <tr>
                         <th>Fecha</th>
-                        <th>Planchas OK</th>
-                        <th>Planchas NO OK</th>
+                        <th>Horario</th>
+                        <th>Horas</th>
+                        <th>Estatus</th>
+                        <th>OK</th>
+                        <th>NO OK</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -404,8 +513,13 @@
             historyData.forEach(item => {
                 totalOk += item.ok;
                 totalNok += item.nok;
+                totalHours += item.hours;
+
                 html += `<tr>
                     <td>${item.date}</td>
+                    <td>${item.timeFrom}-${item.timeTo}</td>
+                    <td>${item.hours.toFixed(1)}h</td>
+                    <td><b>${item.status}</b></td>
                     <td>${item.ok}</td>
                     <td>${item.nok}</td>
                 </tr>`;
@@ -414,7 +528,9 @@
             html += `</tbody>
                 <tfoot>
                     <tr style="font-weight: bold; background-color: #e2e8f0;">
-                        <td>TOTALES ACUMULADOS</td>
+                        <td colspan="2">TOTALES</td>
+                        <td>${totalHours.toFixed(1)}h</td>
+                        <td>-</td>
                         <td>${totalOk}</td>
                         <td>${totalNok}</td>
                     </tr>
@@ -424,7 +540,7 @@
             container.innerHTML = html;
         }
 
-        // Generar PDF sumando todos los días
+        // Generar PDF sumando todos los días y horas
         function generatePDF() {
             if (historyData.length === 0) {
                 alert('No hay ningún registro guardado en el historial para generar el informe.');
@@ -444,7 +560,10 @@
                 document.getElementById('countNok').innerText = '0';
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dateField').value = today;
+                document.getElementById('timeFrom').value = "07:00";
+                document.getElementById('timeTo').value = "15:00";
                 renderHistory();
+                checkKerajetAlert();
             }
         }
     </script>
