@@ -1,1 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tonificación Consumos</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
 
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .counter-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-counter {
+            background-color: #e2e8f0;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.25rem;
+            font-weight: bold;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-counter:hover {
+            background-color: #cbd5e1;
+        }
+
+        .counter-display {
+            flex: 1;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            background-color: #f1f5f9;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Estilos específicos para impresión / PDF ocultando elementos si es necesario */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .btn-counter, .actions {
+                display: none !important;
+            }
+            input, select {
+                border: none;
+                background: transparent;
+                padding: 0;
+                font-size: 1rem;
+            }
+            .counter-display {
+                border: none;
+                background: transparent;
+                text-align: left;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Tonificación Consumos</h1>
+        
+        <form id="consumptionForm">
+            <!-- Número de Orden -->
+            <div class="form-group">
+                <label for="orderNumber">Número de Orden</label>
+                <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001" required>
+            </div>
+
+            <!-- Sustrato (Ordenado alfabéticamente y sin duplicados) -->
+            <div class="form-group">
+                <label for="substrate">Sustrato</label>
+                <select id="substrate" required>
+                    <option value="" disabled selected>Selecciona un sustrato...</option>
+                    <option value="alveo">Alveo</option>
+                    <option value="anticato">Anticato</option>
+                    <option value="apomazado">Apomazado</option>
+                    <option value="arenisca">Arenisca</option>
+                    <option value="lineal">Lineal</option>
+                    <option value="pausa">Pausa</option>
+                    <option value="piano">Piano</option>
+                    <option value="prisma">Prisma</option>
+                    <option value="rústico">Rústico</option>
+                </select>
+            </div>
+
+            <!-- Nombre de Gráfica -->
+            <div class="form-group">
+                <label for="graphicName">Nombre de Gráfica</label>
+                <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica..." required>
+            </div>
+
+            <!-- Fecha Automática (Modificable) -->
+            <div class="form-group">
+                <label for="dateField">Fecha</label>
+                <input type="date" id="dateField" required>
+            </div>
+
+            <!-- Cantidad Planchas No OK -->
+            <div class="form-group">
+                <label>Cantidad Planchas No OK</label>
+                <div class="counter-container">
+                    <button type="button" class="btn-counter" onclick="adjustCount('nok', -1)">-</button>
+                    <div id="countNok" class="counter-display">0</div>
+                    <button type="button" class="btn-counter" onclick="adjustCount('nok', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- Cantidad Planchas OK -->
+            <div class="form-group">
+                <label>Cantidad Planchas OK</label>
+                <div class="counter-container">
+                    <button type="button" class="btn-counter" onclick="adjustCount('ok', -1)">-</button>
+                    <div id="countOk" class="counter-display">0</div>
+                    <button type="button" class="btn-counter" onclick="adjustCount('ok', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="actions">
+                <button type="button" class="btn-primary" onclick="generatePDF()">Generar Informe PDF / Imprimir</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Poner la fecha actual automáticamente al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateField').value = today;
+        });
+
+        // Lógica de contadores dinámicos (+ / -)
+        let counts = {
+            ok: 0,
+            nok: 0
+        };
+
+        function adjustCount(type, amount) {
+            counts[type] += amount;
+            if (counts[type] < 0) {
+                counts[type] = 0; // Evita números negativos
+            }
+            document.getElementById(`count${type.charAt(0).toUpperCase() + type.slice(1)}`).innerText = counts[type];
+        }
+
+        // Función para generar informe / imprimir (abre el diálogo nativo para Guardar como PDF)
+        function generatePDF() {
+            const order = document.getElementById('orderNumber').value;
+            if (!order) {
+                alert('Por favor, introduce al menos el número de orden antes de generar el informe.');
+                document.getElementById('orderNumber').focus();
+                return;
+            }
+            window.print();
+        }
+    </script>
+</body>
+</html>
