@@ -411,9 +411,9 @@
                     </div>
                 </div>
 
-                <!-- BOTÓN DE GUARDAR DIRECTO -->
+                <!-- BOTÓN DE GUARDAR DIRECTO (Con evento en línea para garantizar funcionamiento en móvil) -->
                 <div class="save-container">
-                    <button type="button" class="btn btn-save" id="btnSaveSession">💾 GUARDAR REGISTRO DE HOY</button>
+                    <button type="button" class="btn btn-save" onclick="saveSession()">💾 GUARDAR REGISTRO DE HOY</button>
                 </div>
             </div>
 
@@ -425,8 +425,8 @@
                 </div>
 
                 <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                    <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
-                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑 Borrar Todo / Nuevo Pedido</button>
+                    <button type="button" class="btn btn-primary" onclick="generatePDF()">📄 Generar Informe PDF Acumulado</button>
+                    <button type="button" class="btn btn-danger" onclick="clearHistory()">🗑 Borrar Todo / Nuevo Pedido</button>
                 </div>
             </div>
         </div>
@@ -440,11 +440,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateHomeStatuses();
-
-            // Event Listeners directos
-            document.getElementById('btnSaveSession').addEventListener('click', saveSession);
-            document.getElementById('btnPrintPDF').addEventListener('click', generatePDF);
-            document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
             document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
         });
 
