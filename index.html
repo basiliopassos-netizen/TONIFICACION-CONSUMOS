@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tonificación Consumos</title>
+    <title>Tonificación Consumos - Control Dual</title>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -43,6 +43,72 @@
             margin-bottom: 24px;
             text-align: center;
             color: var(--text-color);
+        }
+
+        /* Pantalla Home / Selección */
+        #homeView {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .home-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card-selector {
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            padding: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-selector:hover {
+            border-color: var(--primary-color);
+            background-color: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Vista de Decorador (Oculta por defecto) */
+        #decoratorView {
+            display: none;
+        }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e2e8f0;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        .nav-back:hover {
+            background: #cbd5e1;
         }
 
         .form-group {
@@ -203,7 +269,7 @@
         @media print {
             body { background-color: white; padding: 0; }
             .container { box-shadow: none; padding: 0; max-width: 100%; }
-            .btn-counter, .save-container, .history-section button, .alert-kerajet { display: none !important; }
+            .nav-back, .btn-counter, .save-container, .history-section button, .alert-kerajet { display: none !important; }
             input, select { border: none; background: transparent; padding: 0; font-size: 1rem; }
             .counter-display { border: none; background: transparent; text-align: left; padding: 0; }
             .history-table { margin-top: 20px; }
@@ -213,132 +279,206 @@
 <body>
 
     <div class="container">
-        <h1>Tonificación Consumos</h1>
         
-        <div>
-            <!-- Número de Orden -->
-            <div class="form-group">
-                <label for="orderNumber">Número de Orden</label>
-                <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001">
-            </div>
-
-            <!-- Técnico -->
-            <div class="form-group">
-                <label for="technician">Técnico</label>
-                <input type="text" id="technician" placeholder="Nombre del técnico...">
-            </div>
-
-            <!-- Sustrato -->
-            <div class="form-group">
-                <label for="substrate">Sustrato</label>
-                <select id="substrate">
-                    <option value="" disabled selected>Selecciona un sustrato...</option>
-                    <option value="alveo">Alveo</option>
-                    <option value="anticato">Anticato</option>
-                    <option value="apomazado">Apomazado</option>
-                    <option value="arenisca">Arenisca</option>
-                    <option value="lineal">Lineal</option>
-                    <option value="pausa">Pausa</option>
-                    <option value="piano">Piano</option>
-                    <option value="prisma">Prisma</option>
-                    <option value="rústico">Rústico</option>
-                </select>
-            </div>
-
-            <!-- Nombre de Gráfica -->
-            <div class="form-group">
-                <label for="graphicName">Nombre de Gráfica</label>
-                <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica...">
-            </div>
-
-            <!-- Fecha (Modificable) -->
-            <div class="form-group">
-                <label for="dateField">Fecha de Sesión</label>
-                <input type="date" id="dateField">
-            </div>
-
-            <!-- Hora Desde y Hora Hasta -->
-            <div class="time-row">
-                <div class="form-group">
-                    <label for="timeFrom">Hora Desde</label>
-                    <input type="time" id="timeFrom">
+        <!-- PANTALLA DE INICIO (HOME) -->
+        <div id="homeView">
+            <h1>Tonificación Consumos</h1>
+            <p style="color: #64748b; margin-bottom: 20px;">Selecciona el técnico para gestionar su registro de producción:</p>
+            
+            <div class="home-cards">
+                <div class="card-selector" onclick="selectDecorator('Decorador 1')">
+                    <div>
+                        <div class="card-title">👤 Decorador 1</div>
+                        <div class="card-subtitle" id="statusDec1">Cargando estado...</div>
+                    </div>
+                    <span style="font-size: 1.5rem; color: var(--primary-color);">➔</span>
                 </div>
-                <div class="form-group">
-                    <label for="timeTo">Hora Hasta</label>
-                    <input type="time" id="timeTo">
+
+                <div class="card-selector" onclick="selectDecorator('Decorador 2')">
+                    <div>
+                        <div class="card-title">👤 Decorador 2</div>
+                        <div class="card-subtitle" id="statusDec2">Cargando estado...</div>
+                    </div>
+                    <span style="font-size: 1.5rem; color: var(--primary-color);">➔</span>
                 </div>
-            </div>
-
-            <!-- Estatus -->
-            <div class="form-group">
-                <label for="statusField">Estatus</label>
-                <select id="statusField">
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Fin">Fin</option>
-                </select>
-            </div>
-
-            <!-- Aviso sugerencia Kerajet -->
-            <div id="kerajetAlert" class="alert-kerajet">
-                ⚠️ Se han alcanzado o superado las 16 horas de trabajo acumuladas y el estatus sigue en pendiente: <strong>Solicitar ayuda a Kerajet</strong>
-            </div>
-
-            <!-- Cantidad Planchas No OK -->
-            <div class="form-group">
-                <label>Cantidad Planchas No OK (de hoy)</label>
-                <div class="counter-container">
-                    <button type="button" class="btn-counter" onclick="adjustCount('nok', -1)">-</button>
-                    <div id="countNok" class="counter-display">0</div>
-                    <button type="button" class="btn-counter" onclick="adjustCount('nok', 1)">+</button>
-                </div>
-            </div>
-
-            <!-- Cantidad Planchas OK -->
-            <div class="form-group">
-                <label>Cantidad Planchas OK (de hoy)</label>
-                <div class="counter-container">
-                    <button type="button" class="btn-counter" onclick="adjustCount('ok', -1)">-</button>
-                    <div id="countOk" class="counter-display">0</div>
-                    <button type="button" class="btn-counter" onclick="adjustCount('ok', 1)">+</button>
-                </div>
-            </div>
-
-            <!-- BOTÓN DE GUARDAR DIRECTO -->
-            <div class="save-container">
-                <button type="button" class="btn btn-save" id="btnSaveSession">💾 GUARDAR REGISTRO DE HOY</button>
             </div>
         </div>
 
-        <!-- Historial de días guardados -->
-        <div class="history-section">
-            <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Historial de Consumos y Tiempos</h3>
-            <div id="historyContainer">
-                <p style="font-size: 0.9rem; color: #64748b;">No hay registros guardados todavía.</p>
+        <!-- VISTA DE TRABAJO DEL DECORADOR -->
+        <div id="decoratorView">
+            <button type="button" class="nav-back" onclick="goHome()">⬅️ Volver a Selección</button>
+            <h1 id="decoratorTitle">Tonificación Consumos</h1>
+            
+            <div>
+                <!-- Número de Orden -->
+                <div class="form-group">
+                    <label for="orderNumber">Número de Orden</label>
+                    <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001">
+                </div>
+
+                <!-- Técnico (Bloqueado con el nombre seleccionado pero editable si se desea) -->
+                <div class="form-group">
+                    <label for="technician">Técnico</label>
+                    <input type="text" id="technician" placeholder="Nombre del técnico...">
+                </div>
+
+                <!-- Sustrato -->
+                <div class="form-group">
+                    <label for="substrate">Sustrato</label>
+                    <select id="substrate">
+                        <option value="" disabled selected>Selecciona un sustrato...</option>
+                        <option value="alveo">Alveo</option>
+                        <option value="anticato">Anticato</option>
+                        <option value="apomazado">Apomazado</option>
+                        <option value="arenisca">Arenisca</option>
+                        <option value="lineal">Lineal</option>
+                        <option value="pausa">Pausa</option>
+                        <option value="piano">Piano</option>
+                        <option value="prisma">Prisma</option>
+                        <option value="rústico">Rústico</option>
+                    </select>
+                </div>
+
+                <!-- Nombre de Gráfica -->
+                <div class="form-group">
+                    <label for="graphicName">Nombre de Gráfica</label>
+                    <input type="text" id="graphicName" placeholder="Escribe el nombre de la gráfica...">
+                </div>
+
+                <!-- Fecha (Modificable) -->
+                <div class="form-group">
+                    <label for="dateField">Fecha de Sesión</label>
+                    <input type="date" id="dateField">
+                </div>
+
+                <!-- Hora Desde y Hora Hasta -->
+                <div class="time-row">
+                    <div class="form-group">
+                        <label for="timeFrom">Hora Desde</label>
+                        <input type="time" id="timeFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="timeTo">Hora Hasta</label>
+                        <input type="time" id="timeTo">
+                    </div>
+                </div>
+
+                <!-- Estatus -->
+                <div class="form-group">
+                    <label for="statusField">Estatus</label>
+                    <select id="statusField">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Fin">Fin</option>
+                    </select>
+                </div>
+
+                <!-- Aviso sugerencia Kerajet -->
+                <div id="kerajetAlert" class="alert-kerajet">
+                    ⚠️ Se han alcanzado o superado las 16 horas de trabajo acumuladas y el estatus sigue en pendiente: <strong>Solicitar ayuda a Kerajet</strong>
+                </div>
+
+                <!-- Cantidad Planchas No OK -->
+                <div class="form-group">
+                    <label>Cantidad Planchas No OK (de hoy)</label>
+                    <div class="counter-container">
+                        <button type="button" class="btn-counter" onclick="adjustCount('nok', -1)">-</button>
+                        <div id="countNok" class="counter-display">0</div>
+                        <button type="button" class="btn-counter" onclick="adjustCount('nok', 1)">+</button>
+                    </div>
+                </div>
+
+                <!-- Cantidad Planchas OK -->
+                <div class="form-group">
+                    <label>Cantidad Planchas OK (de hoy)</label>
+                    <div class="counter-container">
+                        <button type="button" class="btn-counter" onclick="adjustCount('ok', -1)">-</button>
+                        <div id="countOk" class="counter-display">0</div>
+                        <button type="button" class="btn-counter" onclick="adjustCount('ok', 1)">+</button>
+                    </div>
+                </div>
+
+                <!-- BOTÓN DE GUARDAR DIRECTO -->
+                <div class="save-container">
+                    <button type="button" class="btn btn-save" id="btnSaveSession">💾 GUARDAR REGISTRO DE HOY</button>
+                </div>
             </div>
 
-            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
-                <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️ Borrar Todo / Nuevo Pedido</button>
+            <!-- Historial de días guardados -->
+            <div class="history-section">
+                <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Historial de Consumos y Tiempos</h3>
+                <div id="historyContainer">
+                    <p style="font-size: 0.9rem; color: #64748b;">No hay registros guardados todavía.</p>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
+                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️ Borrar Todo / Nuevo Pedido</button>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script>
+        let currentDecorator = '';
         let counts = { ok: 0, nok: 0 };
         let historyData = [];
 
         document.addEventListener('DOMContentLoaded', () => {
+            updateHomeStatuses();
+
+            // Event Listeners directos
+            document.getElementById('btnSaveSession').addEventListener('click', saveSession);
+            document.getElementById('btnPrintPDF').addEventListener('click', generatePDF);
+            document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
+            document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
+        });
+
+        function getStorageKey(suffix) {
+            const prefix = currentDecorator === 'Decorador 1' ? 'dec1_' : 'dec2_';
+            return prefix + suffix;
+        }
+
+        function updateHomeStatuses() {
+            ['Decorador 1', 'Decorador 2'].forEach(dec => {
+                const prefix = dec === 'Decorador 1' ? 'dec1_' : 'dec2_';
+                const hist = localStorage.getItem(prefix + 'history');
+                const order = localStorage.getItem(prefix + 'order');
+                const elementId = dec === 'Decorador 1' ? 'statusDec1' : 'statusDec2';
+                
+                if (hist) {
+                    try {
+                        const data = JSON.parse(hist);
+                        const totalH = data.reduce((acc, i) => acc + i.hours, 0);
+                        document.getElementById(elementIdinnerText = `Orden: ${order || 'Sin orden'} | ${totalH.toFixed(1)}h acumuladas`);
+                    } catch(e) {
+                        document.getElementById(elementId).innerText = 'Sin registros activos';
+                    }
+                } else {
+                    document.getElementById(elementId).innerText = 'Sin registros activos';
+                }
+            });
+        }
+
+        function selectDecorator(decoratorName) {
+            currentDecorator = decoratorName;
+            document.getElementById('decoratorTitle').innerText = `Tonificación Consumos - ${decoratorName}`;
+            document.getElementById('technician').value = decoratorName;
+
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('decoratorView').style.display = 'block';
+
+            // Cargar datos de este decorador específico
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
             document.getElementById('timeFrom').value = "14:00";
             document.getElementById('timeTo').value = "22:00";
 
-            // Cargar datos guardados previamente si existen
-            const savedOrder = localStorage.getItem('ton_order');
-            const savedTech = localStorage.getItem('ton_tech');
-            const savedSubstrate = localStorage.getItem('ton_substrate');
-            const savedGraphic = localStorage.getItem('ton_graphic');
-            const savedHistory = localStorage.getItem('ton_history');
+            const savedOrder = localStorage.getItem(getStorageKey('order'));
+            const savedTech = localStorage.getItem(getStorageKey('tech'));
+            const savedSubstrate = localStorage.getItem(getStorageKey('substrate'));
+            const savedGraphic = localStorage.getItem(getStorageKey('graphic'));
+            const savedHistory = localStorage.getItem(getStorageKey('history'));
 
             if (savedOrder) document.getElementById('orderNumber').value = savedOrder;
             if (savedTech) document.getElementById('technician').value = savedTech;
@@ -352,17 +492,19 @@
                 } catch(e) {
                     historyData = [];
                 }
+            } else {
+                historyData = [];
+                renderHistory();
             }
 
-            // Event Listeners directos
-            document.getElementById('btnSaveSession').addEventListener('click', saveSession);
-            document.getElementById('btnPrintPDF').addEventListener('click', generatePDF);
-            document.getElementById('btnClearHistory').addEventListener('click', clearHistory);
-
-            document.getElementById('statusField').addEventListener('change', checkKerajetAlert);
-            
             checkKerajetAlert();
-        });
+        }
+
+        function goHome() {
+            updateHomeStatuses();
+            document.getElementById('decoratorView').style.display = 'none';
+            document.getElementById('homeView').style.display = 'block';
+        }
 
         function adjustCount(type, amount) {
             counts[type] += amount;
@@ -387,7 +529,6 @@
             const status = document.getElementById('statusField').value;
             const alertBox = document.getElementById('kerajetAlert');
 
-            // Sumar exclusivamente las horas de los turnos ya guardados en el historial
             let totalHistoryHours = historyData.reduce((acc, item) => acc + item.hours, 0);
 
             if (totalHistoryHours >= 16 && status === 'Pendiente') {
@@ -419,10 +560,10 @@
                 return;
             }
 
-            localStorage.setItem('ton_order', order);
-            localStorage.setItem('ton_tech', technician);
-            localStorage.setItem('ton_substrate', substrate);
-            localStorage.setItem('ton_graphic', graphicName);
+            localStorage.setItem(getStorageKey('order'), order);
+            localStorage.setItem(getStorageKey('tech'), technician);
+            localStorage.setItem(getStorageKey('substrate'), substrate);
+            localStorage.setItem(getStorageKey('graphic'), graphicName);
 
             const newEntry = {
                 date: date,
@@ -435,7 +576,7 @@
             };
 
             historyData.push(newEntry);
-            localStorage.setItem('ton_history', JSON.stringify(historyData));
+            localStorage.setItem(getStorageKey('history'), JSON.stringify(historyData));
 
             renderHistory();
             checkKerajetAlert();
@@ -445,7 +586,7 @@
             document.getElementById('countOk').innerText = '0';
             document.getElementById('countNok').innerText = '0';
 
-            alert('¡Registro y horas guardados correctamente en el historial!');
+            alert(`¡Registro de ${currentDecorator} guardado correctamente!`);
         }
 
         function renderHistory() {
@@ -511,12 +652,15 @@
         }
 
         function clearHistory() {
-            if (confirm('¿Estás seguro de que quieres borrar todo el historial y empezar un nuevo pedido?')) {
-                localStorage.clear();
+            if (confirm(`¿Estás seguro de que quieres borrar todo el historial de ${currentDecorator}?`)) {
+                localStorage.removeItem(getStorageKey('history'));
+                localStorage.removeItem(getStorageKey('order'));
+                localStorage.removeItem(getStorageKey('substrate'));
+                localStorage.removeItem(getStorageKey('graphic'));
+                
                 historyData = [];
                 counts = { ok: 0, nok: 0 };
                 document.getElementById('orderNumber').value = '';
-                document.getElementById('technician').value = '';
                 document.getElementById('substrate').selectedIndex = 0;
                 document.getElementById('graphicName').value = '';
                 const today = new Date().toISOString().split('T')[0];
