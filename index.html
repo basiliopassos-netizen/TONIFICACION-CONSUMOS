@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tonificación Consumos - Control Dual</title>
+    <title>Tonificación Consumos - v2.3</title>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -36,6 +36,19 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             margin-bottom: 30px;
+            position: relative;
+        }
+
+        .version-tag {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
         }
 
         h1 {
@@ -269,7 +282,7 @@
         @media print {
             body { background-color: white; padding: 0; }
             .container { box-shadow: none; padding: 0; max-width: 100%; }
-            .nav-back, .btn-counter, .save-container, .history-section button, .alert-kerajet { display: none !important; }
+            .version-tag, .nav-back, .btn-counter, .save-container, .history-section button, .alert-kerajet { display: none !important; }
             input, select { border: none; background: transparent; padding: 0; font-size: 1rem; }
             .counter-display { border: none; background: transparent; text-align: left; padding: 0; }
             .history-table { margin-top: 20px; }
@@ -279,6 +292,7 @@
 <body>
 
     <div class="container">
+        <div class="version-tag">v2.3</div>
         
         <!-- PANTALLA DE INICIO (HOME) -->
         <div id="homeView">
@@ -412,7 +426,7 @@
 
                 <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
                     <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
-                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️️ Borrar Todo / Nuevo Pedido</button>
+                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑 Borrar Todo / Nuevo Pedido</button>
                 </div>
             </div>
         </div>
@@ -469,7 +483,6 @@
             document.getElementById('homeView').style.display = 'none';
             document.getElementById('decoratorView').style.display = 'block';
 
-            // Cargar o limpiar los campos específicos de este decorador
             const savedOrder = localStorage.getItem(getStorageKey('order')) || '';
             const savedTech = localStorage.getItem(getStorageKey('tech')) || decoratorName;
             const savedSubstrate = localStorage.getItem(getStorageKey('substrate')) || '';
@@ -588,7 +601,6 @@
             renderHistory();
             checkKerajetAlert();
 
-            // Resetear solo contadores de planchas
             counts = { ok: 0, nok: 0 };
             document.getElementById('countOk').innerText = '0';
             document.getElementById('countNok').innerText = '0';
@@ -659,17 +671,21 @@
         }
 
         function clearHistory() {
-            if (confirm(`¿Estás seguro de que quieres borrar todo el historial de ${currentDecorator}?`)) {
+            if (confirm(`¿Estás seguro de que quieres borrar todo el historial y los datos de ${currentDecorator}?`)) {
                 localStorage.removeItem(getStorageKey('history'));
                 localStorage.removeItem(getStorageKey('order'));
+                localStorage.removeItem(getStorageKey('tech'));
                 localStorage.removeItem(getStorageKey('substrate'));
                 localStorage.removeItem(getStorageKey('graphic'));
                 
                 historyData = [];
                 counts = { ok: 0, nok: 0 };
+                
                 document.getElementById('orderNumber').value = '';
+                document.getElementById('technician').value = currentDecorator;
                 document.getElementById('substrate').selectedIndex = 0;
                 document.getElementById('graphicName').value = '';
+                
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dateField').value = today;
                 document.getElementById('timeFrom').value = "14:00";
@@ -677,8 +693,10 @@
                 document.getElementById('statusField').value = "Pendiente";
                 document.getElementById('countOk').innerText = '0';
                 document.getElementById('countNok').innerText = '0';
+                
                 renderHistory();
                 checkKerajetAlert();
+                alert(`Se han borrado todos los datos de ${currentDecorator}. Ya puedes empezar un pedido nuevo.`);
             }
         }
     </script>
