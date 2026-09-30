@@ -316,7 +316,7 @@
                     <input type="text" id="orderNumber" placeholder="Ej. ORD-2026-001">
                 </div>
 
-                <!-- Técnico (Bloqueado con el nombre seleccionado pero editable si se desea) -->
+                <!-- Técnico -->
                 <div class="form-group">
                     <label for="technician">Técnico</label>
                     <input type="text" id="technician" placeholder="Nombre del técnico...">
@@ -412,7 +412,7 @@
 
                 <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
                     <button type="button" class="btn btn-primary" id="btnPrintPDF">📄 Generar Informe PDF Acumulado</button>
-                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️ Borrar Todo / Nuevo Pedido</button>
+                    <button type="button" class="btn btn-danger" id="btnClearHistory">🗑️️ Borrar Todo / Nuevo Pedido</button>
                 </div>
             </div>
         </div>
@@ -445,17 +445,18 @@
                 const hist = localStorage.getItem(prefix + 'history');
                 const order = localStorage.getItem(prefix + 'order');
                 const elementId = dec === 'Decorador 1' ? 'statusDec1' : 'statusDec2';
+                const el = document.getElementById(elementId);
                 
-                if (hist) {
+                if (el && hist) {
                     try {
                         const data = JSON.parse(hist);
                         const totalH = data.reduce((acc, i) => acc + i.hours, 0);
-                        document.getElementById(elementIdinnerText = `Orden: ${order || 'Sin orden'} | ${totalH.toFixed(1)}h acumuladas`);
+                        el.innerText = `Orden: ${order || 'Sin orden'} | ${totalH.toFixed(1)}h acumuladas`;
                     } catch(e) {
-                        document.getElementById(elementId).innerText = 'Sin registros activos';
+                        el.innerText = 'Sin registros activos';
                     }
-                } else {
-                    document.getElementById(elementId).innerText = 'Sin registros activos';
+                } else if (el) {
+                    el.innerText = 'Sin registros activos';
                 }
             });
         }
@@ -468,29 +469,35 @@
             document.getElementById('homeView').style.display = 'none';
             document.getElementById('decoratorView').style.display = 'block';
 
-            // Cargar datos de este decorador específico
+            // Cargar o limpiar los campos específicos de este decorador
+            const savedOrder = localStorage.getItem(getStorageKey('order')) || '';
+            const savedTech = localStorage.getItem(getStorageKey('tech')) || decoratorName;
+            const savedSubstrate = localStorage.getItem(getStorageKey('substrate')) || '';
+            const savedGraphic = localStorage.getItem(getStorageKey('graphic')) || '';
+            const savedHistory = localStorage.getItem(getStorageKey('history'));
+
+            document.getElementById('orderNumber').value = savedOrder;
+            document.getElementById('technician').value = savedTech;
+            document.getElementById('substrate').value = savedSubstrate;
+            document.getElementById('graphicName').value = savedGraphic;
+
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dateField').value = today;
             document.getElementById('timeFrom').value = "14:00";
             document.getElementById('timeTo').value = "22:00";
+            document.getElementById('statusField').value = "Pendiente";
 
-            const savedOrder = localStorage.getItem(getStorageKey('order'));
-            const savedTech = localStorage.getItem(getStorageKey('tech'));
-            const savedSubstrate = localStorage.getItem(getStorageKey('substrate'));
-            const savedGraphic = localStorage.getItem(getStorageKey('graphic'));
-            const savedHistory = localStorage.getItem(getStorageKey('history'));
+            counts = { ok: 0, nok: 0 };
+            document.getElementById('countOk').innerText = '0';
+            document.getElementById('countNok').innerText = '0';
 
-            if (savedOrder) document.getElementById('orderNumber').value = savedOrder;
-            if (savedTech) document.getElementById('technician').value = savedTech;
-            if (savedSubstrate) document.getElementById('substrate').value = savedSubstrate;
-            if (savedGraphic) document.getElementById('graphicName').value = savedGraphic;
-            
             if (savedHistory) {
                 try {
                     historyData = JSON.parse(savedHistory);
                     renderHistory();
                 } catch(e) {
                     historyData = [];
+                    renderHistory();
                 }
             } else {
                 historyData = [];
